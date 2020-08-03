@@ -1,0 +1,9 @@
+charm_name: cinder-lvm
+tests:
+  - tests.tests_cinder_lvm.CinderlvmTest
+configure:
+  - zaza.openstack.charm_tests.keystone.setup.add_demo_user
+gate_bundles:
+  - xenial-ocata
+smoke_bundles:
+  - xenial-ocata
