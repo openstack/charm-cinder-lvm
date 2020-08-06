@@ -1,1 +1,90 @@
 options:
+  alias:
+    type: string
+    default: "default"
+    description: |
+      An alias given to the storage pool. This alias will be used to
+      derive the volume-group name and the backend name, and the idea
+      is to differentiate volume groups and backend names when you want
+      multiple instances of the charm on the same host. If you are only
+      using one instance, "default" is probably ok but if using more you
+      can change this to "pool1", "pool2", etc. or "fast", "slow" in
+      case you want to name them after the kind of storage you have.
+  allocation-type:
+    type: string
+    default: 'default'
+    description: |
+      Select between thin or thick models when allocating logical volumes
+      in volume group. Options are 'default' for thick, 'thin' for thin
+      or 'auto' for thin if supported otherwise thick.
+  block-device:
+    type: string
+    default:
+    description: |
+      The block devices on which to create an LVM volume group.
+      .
+      This can be a space-separated list of block devices to attempt
+      to use in the cinder lvm volume group. Each block device detected
+      will be added to the available physical volumes in the volume group.
+      .
+      Formatting as a physical volume will fail if the device is already
+      formatted and may potentially have data, unless 'overwrite' is true.
+      .
+      May be set to the path and size of a local file
+      (/path/to/file|$sizeG), which will be created and used as a
+      loopback device (for testing only). $sizeG defaults to 5G.
+  overwrite:
+    type: boolean
+    default: False
+    description: |
+      If true, charm will attempt to overwrite block devices containing
+      previous filesystems or LVM, assuming it is not in use.
+  erase-size:
+    type: string
+    default: '0'
+    description: |
+      Normally volumes are zeroed completelly before being released after
+      deletion, thus making it slow. Set to a small number to zero only
+      that amount of MB in the beginning of the volume (ex. 50). Values
+      are in MB and 0 (the default) means all (the whole volume).
+  unique-backend:
+    type: boolean
+    default: False
+    description: |
+      Normally all backends which this charm configures are going to
+      register themselves with Cinder using the same backend name (the
+      name of the volume group), therefore allowing Cinder to use them
+      as a cluster and schedule volume creation to any of the nodes
+      that pass cinder filter selection. Set this to True to make each
+      host register with a unique name (volume-group name + hostname)
+      so that each host can be individually addressable in cinder
+      backend list.
+  remove-missing:
+    type: boolean
+    default: False
+    description: |
+      If True, charm will attempt to remove missing physical volumes from
+      volume group, if logical volumes are not allocated on them.
+  remove-missing-force:
+    type: boolean
+    default: False
+    description: |
+      If True, charm will attempt to remove missing physical volumes from
+      volume group, even when logical volumes are allocated on them. This
+      option overrides 'remove-missing' when set.
+  ephemeral-unmount:
+    type: string
+    default:
+    description: |
+      Cloud instances provide ephemeral storage which is normally mounted
+      on /mnt.
+      .
+      Providing this option will force an unmount of the ephemeral device
+      so that it can be used as a Cinder storage device. This is useful for
+      testing purposes (cloud deployment is not a typical use case).
+  config-flags:
+    type: string
+    default:
+    description: |
+      Comma-separated list of key=value config flags. These values will be
+      added to standard options when injecting config into cinder.conf.
