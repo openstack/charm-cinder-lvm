@@ -5,10 +5,13 @@ options:
     description: |
       An alias given to the storage pool. This alias will be used to
       derive the volume-group name and the backend name, and the idea
-      is to differentiate volume groups and backend names when you want
-      multiple instances of the charm on the same host. If you are only
-      using one instance, "default" is probably ok but if using more you
-      can change this to "pool1", "pool2", etc. or "fast", "slow" in
+      is to differentiate volume groups and backend names if you deploy
+      multiple instances of the charm on the same host.
+      .
+      If you are only deploying one instance, this name does not matter
+      and "default" is probably ok. But if you are deploying multiple
+      instances then change the name on each instance to a more
+      meaningful name, like "pool1", "pool2", etc. or "fast", "slow" in
       case you want to name them after the kind of storage you have.
   allocation-type:
     type: string
@@ -21,7 +24,8 @@ options:
     type: string
     default:
     description: |
-      The block devices on which to create an LVM volume group.
+      The block devices on which to create an LVM volume group. This is
+      a mandatory option and leaving it blank will give you and error.
       .
       This can be a space-separated list of block devices to attempt
       to use in the cinder lvm volume group. Each block device detected
@@ -82,6 +86,9 @@ options:
       Providing this option will force an unmount of the ephemeral device
       so that it can be used as a Cinder storage device. This is useful for
       testing purposes (cloud deployment is not a typical use case).
+      .
+      You need to pass the mount point to be unmounted, if blank (or
+      invalid) it will be ignored.
   config-flags:
     type: string
     default:

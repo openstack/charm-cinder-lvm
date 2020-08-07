@@ -50,7 +50,7 @@ def get_backend_name():
     alias = ch_hookenv.config('alias')
     unique_backend = ch_hookenv.config('unique-backend')
 
-    if unique_backend in [True, 'True', 'true']:
+    if unique_backend is True:
         backend_name = 'LVM-{}-{}'.format(hostname, alias)
     else:
         backend_name = 'LVM-{}'.format(alias)
@@ -77,7 +77,7 @@ def configure_block_devices():
     # block_devices is an empty list or not.
     configure_lvm_storage(block_devices,
                           get_volume_group_name(),
-                          conf['overwrite'] in ['true', 'True', True],
+                          conf['overwrite'],
                           conf['remove-missing'],
                           conf['remove-missing-force'])
 
@@ -256,7 +256,7 @@ def log_lvm_info():
 
 
 def juju_log(msg):
-    ch_hookenv.log(msg)
+    ch_hookenv.log(msg, ch_hookenv.INFO)
 
 
 def prepare_volume(device):
