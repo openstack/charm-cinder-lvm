@@ -335,6 +335,14 @@ class CinderlvmCharm(
     stateless = True
     mandatory_config = [ 'alias', 'block-device' ]
 
+    @property
+    def service_name(self):
+        # override backend name returned -- was hookenv.service_name()
+        # unique backend names per host will not function well if
+        # backend names are the same for all hosts, even if the
+        # "volume_backend_name" is set to a unique value
+        return get_backend_name()
+
     def cinder_configuration(self):
         configure_block_devices()
 
