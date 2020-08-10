@@ -71,7 +71,8 @@ def configure_block_devices():
     block_devices = []
     if conf['block-device'] not in [None, 'None', 'none']:
         block_devices.extend(conf['block-device'].split())
-        ch_hookenv.status_set('maintenance', 'Checking configuration of lvm storage')
+        ch_hookenv.status_set('maintenance',
+                              'Checking configuration of lvm storage')
     # Note that there may be None now, and remove-missing is set to true,
     # so we still have to run the function regardless of whether
     # block_devices is an empty list or not.
@@ -122,14 +123,14 @@ def configure_lvm_storage(block_devices, volume_group, overwrite=False,
             if overwrite is True or not has_partition_table(device):
                 prepare_volume(device)
                 new_devices.append(device)
-        elif (is_lvm_physical_volume(device) and
-              list_lvm_volume_group(device) != volume_group):
+        elif (is_lvm_physical_volume(device)
+              and list_lvm_volume_group(device) != volume_group):
             # Existing LVM but not part of required VG or new device
             if overwrite is True:
                 prepare_volume(device)
                 new_devices.append(device)
-        elif (is_lvm_physical_volume(device) and
-                list_lvm_volume_group(device) == volume_group):
+        elif (is_lvm_physical_volume(device)
+              and list_lvm_volume_group(device) == volume_group):
             # Mark vg as found
             juju_log('Found volume-group already created on {}'.format(
                 device))
@@ -333,7 +334,7 @@ class CinderlvmCharm(
     release_pkg = 'cinder-common'
     version_package = 'cinder-volume'
     stateless = True
-    mandatory_config = [ 'alias', 'block-device' ]
+    mandatory_config = ['alias', 'block-device']
 
     @property
     def service_name(self):
@@ -346,7 +347,6 @@ class CinderlvmCharm(
     def cinder_configuration(self):
         configure_block_devices()
 
-        volume_driver = 'cinder.volume.drivers.lvm.LVMVolumeDriver'
         driver_options = [
             ('volume_driver', VOLUME_DRIVER),
             ('volumes_dir', VOLUMES_DIR),
