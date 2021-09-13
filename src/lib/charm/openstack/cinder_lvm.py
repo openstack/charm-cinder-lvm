@@ -1,3 +1,17 @@
+# Copyright 2021 Canonical Ltd
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#  http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 
 import subprocess
 import socket
@@ -87,7 +101,7 @@ def configure_lvm_storage(block_devices, volume_group, overwrite=False,
                           remove_missing=False, remove_missing_force=False):
     ''' Configure LVM storage on the list of block devices provided
 
-    :param block_devices: list: List of whitelisted block devices to detect
+    :param block_devices: list: List of allow-listed block devices to detect
                                 and use if found
     :param overwrite: bool: Scrub any existing block data if block device is
                             not already in-use
@@ -123,14 +137,12 @@ def configure_lvm_storage(block_devices, volume_group, overwrite=False,
             if overwrite is True or not has_partition_table(device):
                 prepare_volume(device)
                 new_devices.append(device)
-        elif (is_lvm_physical_volume(device)
-              and list_lvm_volume_group(device) != volume_group):
+        elif list_lvm_volume_group(device) != volume_group:
             # Existing LVM but not part of required VG or new device
             if overwrite is True:
                 prepare_volume(device)
                 new_devices.append(device)
-        elif (is_lvm_physical_volume(device)
-              and list_lvm_volume_group(device) == volume_group):
+        else:
             # Mark vg as found
             juju_log('Found volume-group already created on {}'.format(
                 device))
@@ -141,7 +153,7 @@ def configure_lvm_storage(block_devices, volume_group, overwrite=False,
     juju_log('LVM info mid preparation')
     log_lvm_info()
 
-    if vg_found is False and len(new_devices) > 0:
+    if not vg_found and new_devices:
         if overwrite:
             ensure_lvm_volume_group_non_existent(volume_group)
 
@@ -161,12 +173,12 @@ def configure_lvm_storage(block_devices, volume_group, overwrite=False,
                  " LVM may not be fully configured yet.  Error was: '{}'."
                  .format(str(e)))
 
-    if len(new_devices) > 0:
+    if new_devices:
         # Extend the volume group as required
         for new_device in new_devices:
             extend_lvm_volume_group(volume_group, new_device)
             thin_pools = list_thin_logical_volume_pools(path_mode=True)
-            if len(thin_pools) == 0:
+            if not thin_pools:
                 juju_log("No thin pools found")
             elif len(thin_pools) == 1:
                 juju_log("Thin pool {} found, extending with {}".format(
@@ -325,11 +337,11 @@ def _parse_block_device(block_device):
         return ('/dev/{}'.format(block_device), 0)
 
 
-class CinderlvmCharm(
+class CinderLVMCharm(
         charms_openstack.charm.CinderStoragePluginCharm):
 
     name = 'cinder_lvm'
-    release = 'ocata'
+    release = 'queens'
     packages = []
     release_pkg = 'cinder-common'
     version_package = 'cinder-volume'

@@ -1,140 +1,55 @@
-lvm Storage Backend for Cinder
--------------------------------
+# Overview
 
-Overview
-========
+The cinder-lvm charm provides an LVM backend for Cinder, the core OpenStack block storage (volume) service. It is a subordinate charm that is used in conjunction with the cinder charm.
 
-This charm provides a lvm storage backend for use with the Cinder
-charm. It is intended to be used as a subordinate to main cinder charm.
+> **Note**: The cinder-lvm charm is supported starting with OpenStack Queens.
 
-To use:
+# Usage
 
-    juju deploy cinder
-    juju deploy cinder-lvm
-    juju add-relation cinder-lvm cinder
+## Configuration
 
-It will prepare the devices (format) and then will talk to main cinder
-charm to pass on configuration which cinde charm will inject into it's
-own configuration file. After that, it does nothing except watch for
-config changes and reconfig cinder.
+This section covers common and/or important configuration options. See file `config.yaml` for the full list of options, along with their descriptions and default values. See the [Juju documentation][juju-docs-config-apps] for details on configuring applications.
 
-The configuration is passed over to cinder using a juju relation.
-Although cinder has a few different services, it is the cinder-volume
-service that will make use of the configuration added.
+#### `allocation-type`
 
-Note: The devices must be local to the cinder-volume, so you will
-probably want to deploy this service on the compute hosts, since the
-cinder-volume that will be running on the controller nodes will not
-have access to any physical device (it is normally deployed in lxd).
+Refers to volume provisioning type. Values can be 'thin', 'thick', 'auto' (resolves to 'thin' if supported) , and 'default' (resolves to 'thick'). The default value is 'default'.
 
-A more complete example, using a bundle would be the folowing.
+### `block-device`
 
-Your normal cinder deployed to controllers, will all services running:
+Specifies a space-separated list of devices to use for LVM physical volumes. This is a mandatory option. Value types include:
 
-    hacluster-cinder:
-      charm: cs:hacluster
-    cinder:
-      charm: cs:cinder
-      num_units: 3
-      constraints: *combi-access-constr
-      bindings:
-        "": *oam-space
-        public: *public-space
-        admin: *admin-space
-        internal: *internal-space
-        shared-db: *internal-space
-      options:
-        worker-multiplier: *worker-multiplier
-        openstack-origin: *openstack-origin
-        block-device: None
-        glance-api-version: 2
-        vip: *cinder-vip
-        use-internal-endpoints: True
-        region: *openstack-region
-      to:
-      - lxd:1003
-      - lxd:1004
-      - lxd:1005
+* block devices (e.g. 'sdb' or '/dev/sdb')
+* a path to a local file with the size appended after a pipe (e.g. '/path/to/file|10G'). The file will be created if necessary and be mapped to a loopback device. This is intended for development and testing purposes. The default size is 5G.
 
-Extra cinder-volume only services running on compute-nodes (basically the same as above but with "enabled-services: volume"). Take care to leave "block-device: None" because we do not want to use internal lvm functionality from the cinder charm, and will instead make the cinder-lvm charm do that:
+To prevent potential data loss an already formatted device (or one containing LVM metadata) cannot be used unless the `overwrite` configuration option is set to 'true'.
 
-    cinder-volume:
-      charm: cs:cinder
-      num_units: 9
-      constraints: *combi-access-constr
-      bindings:
-        "": *oam-space
-        public: *public-space
-        admin: *admin-space
-        internal: *internal-space
-        shared-db: *internal-space
-      options:
-        worker-multiplier: *worker-multiplier
-        openstack-origin: *openstack-origin
-        enabled-services: volume
-        block-device: None
-        glance-api-version: 2
-        use-internal-endpoints: True
-        region: *openstack-region
-      to:
-      - 1000
-      - 1001
-      - 1002
-      - 1003
-      - 1004
-      - 1005
-      - 1006
-      - 1007
-      - 1008
+### `config-flags`
 
-And then the cinder-lvm charm (as a subordinate charm):
+Comma-separated list of key=value config flags. These values will be added to standard options when injecting config into `cinder.conf`.
 
-    cinder-lvm-fast:
-      charm: cs:cinder-lvm
-      num_units: 0
-      options:
-        alias: fast
-        block-device: /dev/nvme0n1
-        allocation-type: default
-        erase-size: '50'
-        unique-backend: true
-    cinder-lvm-slow:
-      charm: cs:cinder-lvm
-      num_units: 0
-      options:
-        alias: slow
-        block-device: /dev/sdb /dev/sdc /dev/sdd
-        allocation-type: default
-        erase-size: '50'
-        unique-backend: true
+### `overwrite`
 
-And then the extra relations for cinder-volume and cinder-lvm-[foo]:
+Permits ('true') the charm to attempt to overwrite storage devices (specified by the `block-devices` option) if they contain pre-existing filesystems or LVM metadata. The default is 'false'. A device in use on the host will never be overwritten.
 
-    - [ cinder-volume, mysql ]
-    - [ "cinder-volume:amqp", "rabbitmq-server:amqp" ]
-    - [ "cinder-lvm-fast", "cinder-volume" ]
-    - [ "cinder-lvm-slow", "cinder-volume" ]
+## Deployment
 
+To deploy, add a relation to the cinder charm:
 
-Configuration
-=============
+  juju add-relation cinder-lvm:storage-backend cinder:storage-backend
 
-See config.yaml for details of configuration options.
+# Documentation
 
-One or more block devices (local to the charm unit) are used as an LVM
-physical volumes, on which a volume group is created. A logical volume
-is created ('openstack volume create') and exported to a cloud instance
-via iSCSI ('openstack server add volume').
+The OpenStack Charms project maintains two documentation guides:
 
-**Note**: It is not recommended to use the LVM storage method for
-anything other than testing or for small non-production deployments.
+* [OpenStack Charm Guide][cg]: for project information, including development
+  and support notes
+* [OpenStack Charms Deployment Guide][cdg]: for charm usage information
 
-**Important** Make sure the designated block devices exist and are not
-in use (formatted as physical volumes or other filesystems), unless they
-already have the desired volume group (in which case it will be used
-instead of creating a new one).
+# Bugs
 
-This charm only prepares devices for lvm and configures cinder and do
-not execute any active function, therefore there is not need for
-high-availability.
+Please report bugs on [Launchpad][lp-bugs-charm-cinder-lvm].
+
+[cg]: https://docs.openstack.org/charm-guide
+[cdg]: https://docs.openstack.org/project-deploy-guide/charm-deployment-guide
+[lp-bugs-charm-cinder-lvm]: https://bugs.launchpad.net/charm-cinder-lvm/+filebug
 

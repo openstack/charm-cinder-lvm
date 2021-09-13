@@ -1,18 +1,21 @@
 name: cinder-lvm
-summary: lvm integration for OpenStack Block Storage
+summary: LVM integration for OpenStack Block Storage
 maintainer: OpenStack Charmers <openstack-charmers@lists.ubuntu.com>
 description: |
  Cinder is the block storage service for the Openstack project.
  .
- This charm provides a lvm backend for Cinder.
+ This charm provides an LVM backend for Cinder.
 tags:
   - openstack
   - storage
   - file-servers
   - misc
 series:
-  - xenial
   - bionic
+  - focal
+  - groovy
+  - hirsute
+  - impish
 subordinate: true
 provides:
   storage-backend:

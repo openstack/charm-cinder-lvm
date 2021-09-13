@@ -1,0 +1,56 @@
+series: bionic
+comment:
+- 'machines section to decide order of deployment. database sooner = faster'
+machines:
+  '0':
+    constraints: mem=3072M
+  '1':
+  '2':
+    constraints: mem=4G root-disk=16G
+  '3':
+relations:
+- - keystone:shared-db
+  - mysql:shared-db
+- - cinder:shared-db
+  - mysql:shared-db
+- - cinder:identity-service
+  - keystone:identity-service
+- - cinder:amqp
+  - rabbitmq-server:amqp
+- - cinder:storage-backend
+  - cinder-lvm:storage-backend
+applications:
+  mysql:
+    charm: cs:~openstack-charmers-next/percona-cluster
+    num_units: 1
+    to:
+    - '0'
+  keystone:
+    charm: cs:~openstack-charmers-next/keystone
+    options:
+      openstack-origin: cloud:bionic-train
+    num_units: 1
+    to:
+    - '1'
+  cinder:
+    charm: cs:~openstack-charmers-next/cinder
+    num_units: 1
+    storage:
+      block-devices: '40G'
+    options:
+      openstack-origin: cloud:bionic-train
+      block-device: None
+      overwrite: "true"
+      ephemeral-unmount: /mnt
+    to:
+    - '2'
+  cinder-lvm:
+    charm: cinder-lvm
+    options:
+      block-device: '/tmp/vol1|4G'
+      alias: zaza-lvm
+  rabbitmq-server:
+    charm: cs:~openstack-charmers-next/rabbitmq-server
+    num_units: 1
+    to:
+    - '3'
