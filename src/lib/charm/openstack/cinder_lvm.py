@@ -63,8 +63,11 @@ def get_backend_name():
     hostname = socket.gethostname()
     alias = ch_hookenv.config('alias')
     unique_backend = ch_hookenv.config('unique-backend')
+    backend_name = ch_hookenv.config('backend-name')
 
-    if unique_backend is True:
+    if backend_name:
+        pass
+    elif unique_backend is True:
         backend_name = 'LVM-{}-{}'.format(hostname, alias)
     else:
         backend_name = 'LVM-{}'.format(alias)
@@ -73,7 +76,8 @@ def get_backend_name():
 
 
 def get_volume_group_name():
-    return "cinder-volumes-{}".format(ch_hookenv.config('alias'))
+    vg_name = ch_hookenv.config('volume-group')
+    return vg_name or 'cinder-volumes-{}'.format(ch_hookenv.config('alias'))
 
 
 def configure_block_devices():

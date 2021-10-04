@@ -95,3 +95,17 @@ options:
     description: |
       Comma-separated list of key=value config flags. These values will be
       added to standard options when injecting config into cinder.conf.
+  volume-group:
+    type: string
+    default:
+    description: |
+      Volume group name to use within LVM. If empty, the volume group name
+      will be constructed by concatenating the 'alias' config option to the
+      prefix 'cinder-volumes-'.
+  backend-name:
+    type: string
+    default:
+    description: |
+      The backend name to provide to the cinder charm. If empty, the backend name
+      will be constructed from the 'alias' parameter, and the unit's hostname, if
+      the charm has the config option 'unique-backend' set to True.
