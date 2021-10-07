@@ -345,7 +345,7 @@ class CinderLVMCharm(
     packages = []
     release_pkg = 'cinder-common'
     version_package = 'cinder-volume'
-    stateless = True
+    stateless = False
     mandatory_config = ['alias', 'block-device']
 
     @property
