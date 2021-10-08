@@ -194,6 +194,10 @@ class TestCinderLVMCharm(test_utils.PatchHelper):
         self.assertEqual(charm.name, 'cinder_lvm')
         self.assertEqual(charm.version_package, 'cinder-volume')
         self.assertEqual(charm.packages, [])
+        self.assertEqual(cinder_lvm.get_volume_group_name(),
+                         'cinder-volumes-test-alias')
+        self.assertEqual(cinder_lvm.get_backend_name(),
+                         'LVM-test-alias')
 
     def test_cinder_configuration(self):
         charm = self._patch_config_and_charm(
@@ -201,6 +205,13 @@ class TestCinderLVMCharm(test_utils.PatchHelper):
         config = charm.cinder_configuration()
         self.assertEqual(config[-1][1], '3')
         self.assertNotIn('a', list(x[0] for x in config))
+
+    def test_cinder_vg_and_backend(self):
+        base = {'volume-group': 'test-vg', 'backend-name': 'test-bn'}
+        self._patch_config_and_charm(base)
+        self.assertEqual(cinder_lvm.get_backend_name(), base['backend-name'])
+        self.assertEqual(cinder_lvm.get_volume_group_name(),
+                         base['volume-group'])
 
     def test_cinder_lvm_ephemeral_mount(self):
         ephemeral_path, ephemeral_dev = 'somepath', '/dev/sdc'
