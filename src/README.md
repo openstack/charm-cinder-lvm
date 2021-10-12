@@ -50,8 +50,10 @@ host will never be overwritten.
 
 ## Deployment
 
-To deploy, add a relation to the cinder charm:
+Specify a block device (here we choose `/dev/sdb`) and then add a relation to
+the cinder charm:
 
+    juju deploy --config block-device=sdb cinder-lvm
     juju add-relation cinder-lvm:storage-backend cinder:storage-backend
 
 # Documentation

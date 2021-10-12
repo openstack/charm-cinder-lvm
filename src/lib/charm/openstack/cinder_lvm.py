@@ -63,7 +63,7 @@ def get_backend_name():
     hostname = socket.gethostname()
     alias = ch_hookenv.config('alias')
     unique_backend = ch_hookenv.config('unique-backend')
-    backend_name = ch_hookenv.config('backend-name')
+    backend_name = ch_hookenv.config('volume-backend-name')
 
     if backend_name:
         pass

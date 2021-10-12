@@ -207,9 +207,10 @@ class TestCinderLVMCharm(test_utils.PatchHelper):
         self.assertNotIn('a', list(x[0] for x in config))
 
     def test_cinder_vg_and_backend(self):
-        base = {'volume-group': 'test-vg', 'backend-name': 'test-bn'}
+        base = {'volume-group': 'test-vg', 'volume-backend-name': 'test-bn'}
         self._patch_config_and_charm(base)
-        self.assertEqual(cinder_lvm.get_backend_name(), base['backend-name'])
+        self.assertEqual(cinder_lvm.get_backend_name(),
+                         base['volume-backend-name'])
         self.assertEqual(cinder_lvm.get_volume_group_name(),
                          base['volume-group'])
 
