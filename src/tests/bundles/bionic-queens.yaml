@@ -21,17 +21,19 @@ relations:
   - cinder-lvm:storage-backend
 applications:
   mysql:
-    charm: cs:~openstack-charmers-next/percona-cluster
+    charm: cs:~openstack-charmers/percona-cluster
     num_units: 1
     to:
     - '0'
+    channel: candidate
   keystone:
-    charm: cs:~openstack-charmers-next/keystone
+    charm: cs:~openstack-charmers/keystone
     num_units: 1
     to:
     - '1'
+    channel: candidate
   cinder:
-    charm: cs:~openstack-charmers-next/cinder
+    charm: cs:~openstack-charmers/cinder
     num_units: 1
     options:
       block-device: /dev/vdb
@@ -39,13 +41,15 @@ applications:
       ephemeral-unmount: /mnt
     to:
     - '2'
+    channel: candidate
   cinder-lvm:
     charm: cinder-lvm
     options:
       block-device: '/tmp/vol1|4G'
       alias: zaza-lvm
   rabbitmq-server:
-    charm: cs:~openstack-charmers-next/rabbitmq-server
+    charm: cs:~openstack-charmers/rabbitmq-server
     num_units: 1
     to:
     - '3'
+    channel: candidate
