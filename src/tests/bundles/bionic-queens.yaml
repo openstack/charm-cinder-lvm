@@ -25,13 +25,11 @@ applications:
     num_units: 1
     to:
     - '0'
-    channel: candidate
   keystone:
     charm: cs:~openstack-charmers/keystone
     num_units: 1
     to:
     - '1'
-    channel: candidate
   cinder:
     charm: cs:~openstack-charmers/cinder
     num_units: 1
@@ -41,7 +39,6 @@ applications:
       ephemeral-unmount: /mnt
     to:
     - '2'
-    channel: candidate
   cinder-lvm:
     charm: cinder-lvm
     options:
@@ -52,4 +49,3 @@ applications:
     num_units: 1
     to:
     - '3'
-    channel: candidate
