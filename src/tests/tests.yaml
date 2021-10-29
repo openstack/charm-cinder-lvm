@@ -5,20 +5,23 @@ configure:
   - zaza.openstack.charm_tests.keystone.setup.add_demo_user
 gate_bundles:
   - bionic-queens
-  - bionic-rocky
   - bionic-stein
-  - bionic-train
   - bionic-ussuri
   - focal-ussuri
   - focal-victoria
   - focal-wallaby
   - focal-xena
-  - groovy-victoria
   - hirsute-wallaby
-smoke_bundles:
-  - bionic-ussuri
-dev_bundles:
   - impish-xena
-test_options:
+smoke_bundles:
+  - focal-ussuri
+dev_bundles:
+  - bionic-rocky
+  - bionic-train
+  - focal-yoga
+  - jammy-yoga
+tests_options:
   force_deploy:
+    - hirsute-wallaby
     - impish-xena
+    - jammy-yoga

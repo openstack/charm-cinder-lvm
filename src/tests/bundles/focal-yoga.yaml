@@ -1,6 +1,6 @@
-series: groovy
+series: focal
 variables:
-  openstack-origin: &openstack-origin distro
+  openstack-origin: &openstack-origin cloud:focal-yoga
 comment:
 - 'machines section to decide order of deployment. database sooner = faster'
 machines:
@@ -64,6 +64,7 @@ applications:
       openstack-origin: *openstack-origin
       block-device: None
       overwrite: "true"
+      ephemeral-unmount: /mnt
     to:
       - '5'
   cinder-lvm:
