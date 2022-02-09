@@ -141,6 +141,8 @@ class TestCinderLVMCharm(test_utils.PatchHelper):
             return self._config.get(key)
 
         self.patch_object(charmhelpers.core.hookenv, 'config')
+        self.patch_object(charmhelpers.core.hookenv, 'leader_get',
+                          return_value='lioadm')
         self.patch_object(cinder_lvm, 'mounts')
         self.patch_object(cinder_lvm, 'umount')
         self.patch_object(cinder_lvm, 'is_block_device')
@@ -187,7 +189,7 @@ class TestCinderLVMCharm(test_utils.PatchHelper):
 
     def _patch_config_and_charm(self, config):
         self._config.update(config)
-        return cinder_lvm.CinderLVMCharm()
+        return cinder_lvm.CinderLVMCharmWallaby()
 
     def test_cinder_base(self):
         charm = self._patch_config_and_charm({})
@@ -203,8 +205,10 @@ class TestCinderLVMCharm(test_utils.PatchHelper):
         charm = self._patch_config_and_charm(
             {'a': 'b', 'config-flags': 'val=3'})
         config = charm.cinder_configuration()
-        self.assertEqual(config[-1][1], '3')
-        self.assertNotIn('a', list(x[0] for x in config))
+        cfg_dict = dict()
+        cfg_dict.update(dict(config))
+        self.assertEqual('3', cfg_dict.get('val'))
+        self.assertIsNone(cfg_dict.get('a'))
 
     def test_cinder_vg_and_backend(self):
         base = {'volume-group': 'test-vg', 'volume-backend-name': 'test-bn'}
@@ -246,3 +250,15 @@ class TestCinderLVMCharm(test_utils.PatchHelper):
         dev = self.LVM.find_device(loop_dev)
         self.assertTrue(dev)
         self.assertEqual(dev.size, '100')
+
+    def test_cinder_wallaby_upgrade(self):
+        charm = self._patch_config_and_charm({})
+
+        charm.release = "wallaby"
+        config2 = charm.cinder_configuration()
+        self.assertIn(('target_helper', 'lioadm'), config2)
+
+        charm = self._patch_config_and_charm({
+            'config-flags': 'target_helper=tgtadm'})
+        config3 = charm.cinder_configuration()
+        self.assertIn(('target_helper', 'tgtadm'), config3)
