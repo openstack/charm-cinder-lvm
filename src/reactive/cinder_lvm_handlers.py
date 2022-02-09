@@ -15,6 +15,14 @@
 import charms_openstack.charm
 import charms.reactive
 
+from charmhelpers.contrib.openstack.utils import os_release
+from charmhelpers.core.hookenv import (
+    leader_get,
+    leader_set,
+    log,
+)
+from charmhelpers.fetch.ubuntu import (get_installed_version,
+                                       apt_mark)
 # This charm's library contains all of the handler code associated with
 # this charm -- we will use the auto-discovery feature of charms.openstack
 # to get the definitions for the charm.
@@ -33,3 +41,31 @@ charms_openstack.charm.use_defaults(
 def reinstall():
     with charms_openstack.charm.provide_charm_instance() as charm:
         charm.install()
+
+
+@charms.reactive.when('leadership.is_leader')
+@charms.reactive.when_any('charm.installed', 'upgrade-charm',
+                          'storage-backend.connected')
+def set_target_helper():
+    log("Setting target-helper: {}".format(leader_get('target-helper')),
+        "DEBUG")
+
+    if leader_get('target-helper') is None:
+        # For deployments upgrading from Victoria, we set the target helper
+        # to the legacy default of tgtadm. For new deployments, lioadm. See
+        # LP#1949074 for more details.
+        if os_release('cinder-common') <= 'victoria':
+            leader_set(settings={"target-helper": "tgtadm",
+                                 "target-port": 3260})
+            # Mark tgt as manual to prevent it from being removed. Since
+            # Wallaby tgt is no longer a dependency of cinder-volume package
+            # but some backends will still use it.
+            if get_installed_version("tgt"):
+                apt_mark("tgt", "manual")
+        else:
+            leader_set(settings={"target-helper": "lioadm",
+                                 "target-port": 3260})
+
+        log("Setting target-helper/port: {}/{}".format(
+            leader_get('target-helper'), leader_get('target-port')),
+            "DEBUG")
