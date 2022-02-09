@@ -17,7 +17,7 @@ import subprocess
 import socket
 
 import charms_openstack.charm
-import charmhelpers.core.hookenv as ch_hookenv  # noqa
+import charmhelpers.core.hookenv as ch_hookenv
 
 from charmhelpers.core.strutils import (
     bytes_from_string,
@@ -115,10 +115,10 @@ def configure_lvm_storage(block_devices, volume_group, overwrite=False,
                            volume group even if logical volumes are allocated
                            on them. Overrides 'remove_missing' if set.
     '''
-    juju_log('LVM info before preparation')
+    ch_hookenv.log('LVM info before preparation')
     log_lvm_info()
 
-    juju_log('block_devices: {}'.format(','.join(block_devices)))
+    ch_hookenv.log('block_devices: {}'.format(','.join(block_devices)))
 
     devices = []
     for block_device in block_devices:
@@ -131,7 +131,7 @@ def configure_lvm_storage(block_devices, volume_group, overwrite=False,
                 lo_device = ensure_loopback_device(block_device, str(size))
                 devices.append(lo_device)
 
-    juju_log('devices: {}'.format(','.join(devices)))
+    ch_hookenv.log('devices: {}'.format(','.join(devices)))
 
     vg_found = False
     new_devices = []
@@ -148,13 +148,13 @@ def configure_lvm_storage(block_devices, volume_group, overwrite=False,
                 new_devices.append(device)
         else:
             # Mark vg as found
-            juju_log('Found volume-group already created on {}'.format(
+            ch_hookenv.log('Found volume-group already created on {}'.format(
                 device))
             vg_found = True
 
-    juju_log('new_devices: {}'.format(','.join(new_devices)))
+    ch_hookenv.log('new_devices: {}'.format(','.join(new_devices)))
 
-    juju_log('LVM info mid preparation')
+    ch_hookenv.log('LVM info mid preparation')
     log_lvm_info()
 
     if not vg_found and new_devices:
@@ -173,9 +173,9 @@ def configure_lvm_storage(block_devices, volume_group, overwrite=False,
         elif remove_missing:
             reduce_lvm_volume_group_missing(volume_group)
     except subprocess.CalledProcessError as e:
-        juju_log("reduce_lvm_volume_group_missing() didn't complete."
-                 " LVM may not be fully configured yet.  Error was: '{}'."
-                 .format(str(e)))
+        ch_hookenv.log("reduce_lvm_volume_group_missing() didn't complete."
+                       " LVM may not be fully configured yet.  Error was: '{}'"
+                       .format(str(e)))
 
     if new_devices:
         # Extend the volume group as required
@@ -183,18 +183,18 @@ def configure_lvm_storage(block_devices, volume_group, overwrite=False,
             extend_lvm_volume_group(volume_group, new_device)
             thin_pools = list_thin_logical_volume_pools(path_mode=True)
             if not thin_pools:
-                juju_log("No thin pools found")
+                ch_hookenv.log("No thin pools found")
             elif len(thin_pools) == 1:
-                juju_log("Thin pool {} found, extending with {}".format(
+                ch_hookenv.log("Thin pool {} found, extending with {}".format(
                     thin_pools[0],
                     new_device))
                 extend_logical_volume_by_device(thin_pools[0], new_device)
             else:
-                juju_log("Multiple thin pools ({}) found, "
-                         "skipping auto extending with {}".format(
-                             ','.join(thin_pools),
-                             new_device))
-    juju_log('LVM info after preparation')
+                msg = ("Multiple thin pools ({}) found, skipping auto "
+                       "extending with {}").format(','.join(thin_pools),
+                                                   new_device)
+                ch_hookenv.log(msg)
+    ch_hookenv.log('LVM info after preparation')
     log_lvm_info()
 
 
@@ -261,26 +261,23 @@ def log_lvm_info():
     """Log some useful information about how LVM is setup."""
     try:
         pvscan_output = subprocess.check_output(['pvscan']).decode('UTF-8')
-        juju_log('pvscan:\n{}'.format(pvscan_output))
+        ch_hookenv.log('pvscan:\n{}'.format(pvscan_output))
     except subprocess.CalledProcessError:
-        juju_log('pvscan did not complete successfully; may not be setup yet')
+        ch_hookenv.log('pvscan did not complete successfully; may not be '
+                       'setup yet')
 
     try:
         vgscan_output = subprocess.check_output(['vgscan']).decode('UTF-8')
-        juju_log('vgscan:\n{}'.format(vgscan_output))
+        ch_hookenv.log('vgscan:\n{}'.format(vgscan_output))
     except subprocess.CalledProcessError:
-        juju_log('vgscan did not complete successfully')
-
-
-def juju_log(msg):
-    ch_hookenv.log(msg, ch_hookenv.INFO)
+        ch_hookenv.log('vgscan did not complete successfully')
 
 
 def prepare_volume(device):
-    juju_log("prepare_volume: {}".format(device))
+    ch_hookenv.log("prepare_volume: {}".format(device))
     clean_storage(device)
     create_lvm_physical_volume(device)
-    juju_log("prepared volume: {}".format(device))
+    ch_hookenv.log("prepared volume: {}".format(device))
 
 
 def has_partition_table(block_device):
@@ -300,8 +297,8 @@ def clean_storage(block_device):
     '''
     for mp, d in mounts():
         if d == block_device:
-            juju_log('clean_storage(): Found %s mounted @ %s, unmounting.' %
-                     (d, mp))
+            ch_hookenv.log('clean_storage(): Found %s mounted @ %s, '
+                           'unmounting.' % (d, mp))
             umount(mp, persist=True)
 
     if is_lvm_physical_volume(block_device):
@@ -381,3 +378,37 @@ class CinderLVMCharm(
                 driver_options.append(tup)
 
         return driver_options
+
+
+class CinderLVMCharmWallaby(CinderLVMCharm):
+
+    release = 'wallaby'
+
+    def cinder_configuration(self):
+        """Add some extra configuration for Wallaby and on.
+        :return: list of tuples with the configuration options for this driver.
+        """
+        opts = super(CinderLVMCharmWallaby, self).cinder_configuration()
+
+        # From Wallaby and on, the default target_helper that comes with the
+        # Ubuntu cinder package is not tgtadm (default for Cinder), and
+        # therefore, not installed as dependency anymore. Users should either
+        # install it by hand or set the config to use lioadm.
+        dict_opts = dict(opts)
+        helper = dict_opts.get('target_helper')
+        if helper:
+            if helper != 'lioadm':
+                ch_hookenv.log("Configured target helper '{}' might not be "
+                               "installed as the default target_helper is "
+                               "lioadm.".format(helper),
+                               level=ch_hookenv.WARNING)
+                return opts
+        else:
+            tgt_helper = ch_hookenv.leader_get('target-helper')
+            tgt_port = ch_hookenv.leader_get('target-port')
+            if tgt_helper:
+                opts.append(('target_helper', tgt_helper))
+            if tgt_port:
+                opts.append(('target_port', tgt_port))
+
+        return opts
