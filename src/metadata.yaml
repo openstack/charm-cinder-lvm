@@ -11,11 +11,7 @@ tags:
   - file-servers
   - misc
 series:
-  - bionic
   - focal
-  - groovy
-  - hirsute
-  - impish
 subordinate: true
 provides:
   storage-backend:
