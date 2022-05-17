@@ -1,3 +1,5 @@
+local_overlay_enabled: False
+
 series: focal
 variables:
   openstack-origin: &openstack-origin cloud:focal-victoria
@@ -31,7 +33,7 @@ relations:
     - cinder-lvm:storage-backend
 applications:
   mysql-innodb-cluster:
-    charm: cs:~openstack-charmers/mysql-innodb-cluster
+    charm: ch:mysql-innodb-cluster
     num_units: 3
     options:
       source: *openstack-origin
@@ -39,24 +41,28 @@ applications:
       - '0'
       - '1'
       - '2'
+    channel: 8.0/edge
   rabbitmq-server:
-    charm: cs:~openstack-charmers/rabbitmq-server
+    charm: ch:rabbitmq-server
     num_units: 1
     options:
       source: *openstack-origin
     to:
       - '3'
+    channel: 3.8/edge
   keystone:
-    charm: cs:~openstack-charmers/keystone
+    charm: ch:keystone
     options:
       openstack-origin: *openstack-origin
     num_units: 1
     to:
       - '4'
+    channel: wallaby/edge
   keystone-mysql-router:
-    charm: cs:~openstack-charmers/mysql-router
+    charm: ch:mysql-router
+    channel: 8.0/edge
   cinder:
-    charm: cs:~openstack-charmers/cinder
+    charm: ch:cinder
     storage:
       block-devices: '40G'
     num_units: 1
@@ -67,10 +73,12 @@ applications:
       ephemeral-unmount: /mnt
     to:
       - '5'
+    channel: wallaby/edge
   cinder-lvm:
-    charm: cinder-lvm
+    charm: ../../../cinder-lvm.charm
     options:
       block-device: '/tmp/vol1|4G'
       alias: zaza-lvm
   cinder-mysql-router:
-    charm: cs:~openstack-charmers/mysql-router
+    charm: ch:mysql-router
+    channel: 8.0/edge
