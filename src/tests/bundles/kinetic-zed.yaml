@@ -1,4 +1,4 @@
-series: impish
+series: kinetic
 local_overlay_enabled: False
 
 variables:

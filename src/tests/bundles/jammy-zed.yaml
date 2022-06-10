@@ -1,8 +1,8 @@
-series: focal
+series: jammy
 local_overlay_enabled: False
 
 variables:
-  openstack-origin: &openstack-origin cloud:focal-yoga
+  openstack-origin: &openstack-origin cloud:jammy-zed
 comment:
 - 'machines section to decide order of deployment. database sooner = faster'
 machines:
