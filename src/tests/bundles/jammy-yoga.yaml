@@ -41,7 +41,7 @@ applications:
       - '0'
       - '1'
       - '2'
-    channel: latest/edge
+    channel: 8.0/edge
   rabbitmq-server:
     charm: ch:rabbitmq-server
     num_units: 1
@@ -49,7 +49,7 @@ applications:
       source: *openstack-origin
     to:
       - '3'
-    channel: latest/edge
+    channel: 3.9/edge
   keystone:
     charm: ch:keystone
     options:
@@ -57,10 +57,10 @@ applications:
     num_units: 1
     to:
       - '4'
-    channel: latest/edge
+    channel: yoga/edge
   keystone-mysql-router:
     charm: ch:mysql-router
-    channel: latest/edge
+    channel: 8.0/edge
   cinder:
     charm: ch:cinder
     storage:
@@ -72,7 +72,7 @@ applications:
       overwrite: "true"
     to:
       - '5'
-    channel: latest/edge
+    channel: yoga/edge
   cinder-lvm:
     charm: ../../../cinder-lvm.charm
     options:
@@ -80,4 +80,4 @@ applications:
       alias: zaza-lvm
   cinder-mysql-router:
     charm: ch:mysql-router
-    channel: latest/edge
+    channel: 8.0/edge
