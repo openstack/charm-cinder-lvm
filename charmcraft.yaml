@@ -22,9 +22,11 @@ parts:
       # For some reason, the normal priming chokes on the fact that there's a
       # hooks directory.
       cp -r $CRAFT_STAGE/* .
-      # Charmcraft looks for this specific entry point.
-      mkdir src
-      ln -sf ../hooks/start src/charm.py
+      # Charmcraft looks for this specific entry point, and it needs to be
+      # executable
+      mkdir -p src
+      touch src/charm.py
+      chmod +x src/charm.py
 
 bases:
   - name: ubuntu
