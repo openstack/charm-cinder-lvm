@@ -1,8 +1,8 @@
-series: jammy
+series: mantic
 local_overlay_enabled: False
 
 variables:
-  openstack-origin: &openstack-origin cloud:jammy-zed
+  openstack-origin: &openstack-origin distro
 comment:
 - 'machines section to decide order of deployment. database sooner = faster'
 machines:
@@ -66,12 +66,11 @@ applications:
       openstack-origin: *openstack-origin
       block-device: None
       overwrite: "true"
-      ephemeral-unmount: /mnt
     to:
       - '5'
     channel: latest/edge
   cinder-lvm:
-    charm: ../../../cinder-lvm.charm
+    charm: ../../../cinder-lvm_ubuntu-23.10-amd64.charm
     options:
       block-device: '/tmp/vol1|4G'
       alias: zaza-lvm
