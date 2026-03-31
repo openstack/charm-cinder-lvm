@@ -71,7 +71,7 @@ applications:
       - '5'
     channel: 2024.1/edge
   cinder-lvm:
-    charm: ../../../cinder-lvm_ubuntu-22.04-amd64.charm
+    charm: ../../../cinder-lvm_ubuntu-24.04-amd64.charm
     options:
       block-device: '/tmp/vol1|4G'
       alias: zaza-lvm
